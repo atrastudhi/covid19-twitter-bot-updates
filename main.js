@@ -26,25 +26,25 @@ const tweeting = (tweet, statusId) => {
 exports.main = async (req, res) => {
   try {
     const { data } = await axios.get(process.env.GET_URL);
-    const countries = data.features;
+    const countries = data;
     const dbCountries = await knex(process.env.TABLE).select();
 
     for (let i = 0; i < countries.length; i++) {
-      const newCountries = countries[i].attributes;
+      const newCountries = countries[i];
       let check = false
 
       for (let j = 0; j < dbCountries.length; j++) {
 
-        if (String(dbCountries[j].name) == String(newCountries.Country_Region)) {
+        if (String(dbCountries[j].name) == String(newCountries.countryregion)) {
           check = true;
-          if (dbCountries[j].confirmed !== newCountries.Confirmed || dbCountries[j].deaths !== newCountries.Deaths || dbCountries[j].recovered !== newCountries.Recovered) {
-            let tweetData = await tweeting(`[${newCountries.Country_Region}] Confirmed: ${newCountries.Confirmed} | Recovered: ${newCountries.Recovered} | Deaths: ${newCountries.Deaths}`, dbCountries[j].tweet_id);
+          if (dbCountries[j].confirmed !== newCountries.confirmed || dbCountries[j].deaths !== newCountries.deaths || dbCountries[j].recovered !== newCountries.recovered) {
+            let tweetData = await tweeting(`[${newCountries.countryregion}] Confirmed: ${newCountries.confirmed} | Recovered: ${newCountries.recovered} | Deaths: ${newCountries.deaths}`, dbCountries[j].tweet_id);
             await knex(process.env.TABLE).where({
-              name: newCountries.Country_Region
+              name: newCountries.countryregion
             }).update({
-              confirmed: newCountries.Confirmed,
-              deaths: newCountries.Deaths,
-              recovered: newCountries.Recovered,
+              confirmed: newCountries.confirmed,
+              deaths: newCountries.deaths,
+              recovered: newCountries.recovered,
               tweet_id: tweetData.id_str
             });
             console.log('=== new updates ===');
@@ -56,12 +56,12 @@ exports.main = async (req, res) => {
       }
 
       if (!check) {
-        let tweetData = await tweeting(`[${newCountries.Country_Region}] Confirmed: ${newCountries.Confirmed} | Recovered: ${newCountries.Recovered} | Deaths: ${newCountries.Deaths}`, null);
+        let tweetData = await tweeting(`[${newCountries.countryregion}] confirmed: ${newCountries.confirmed} | recovered: ${newCountries.recovered} | deaths: ${newCountries.deaths}`, null);
         await knex(process.env.TABLE).insert({
-          name: newCountries.Country_Region,
-          confirmed: newCountries.Confirmed,
-          deaths: newCountries.Deaths,
-          recovered: newCountries.Recovered,
+          name: newCountries.countryregion,
+          confirmed: newCountries.confirmed,
+          deaths: newCountries.deaths,
+          recovered: newCountries.recovered,
           tweet_id: tweetData.id_str
         });
         console.log('=== new countries ===');
